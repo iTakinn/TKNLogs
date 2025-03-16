@@ -8,14 +8,15 @@ import java.util.logging.LogRecord;
 public class ErrorCatcher extends Handler {
     @Override
     public void publish(LogRecord record) {
-        if (record.getLevel() == Level.SEVERE|| record.getLevel() == Level.WARNING) {
+        if (record.getLevel() == Level.ALL) {
             String mensagem = record.getMessage();
             Throwable excecao = record.getThrown();
             TKNLogs.getDiscord().sendMessage(mensagem);
-            TKNLogs.getDiscord().sendMessage(excecao.toString());
+            
             //Bukkit.getConsoleSender().sendMessage("§c[ERROR] " + mensagem);
 
             if (excecao != null) {
+                TKNLogs.getDiscord().sendMessage(excecao.toString());
                 excecao.printStackTrace();
             }
         }
