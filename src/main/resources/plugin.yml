@@ -1,0 +1,5 @@
+name: TKNLogs
+version: '1.0-SNAPSHOT'
+main: org.itakinn.tknlogs.TKNLogs
+api-version: '1.20'
+authors: [iTakinn]

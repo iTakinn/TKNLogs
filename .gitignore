@@ -1,0 +1,6 @@
+target/original-TKNLogs-1.0-SNAPSHOT.jar
+target/TKNLogs-1.0-SNAPSHOT.jar
+dependency-reduced-pom.xml
+TKNLogs.iml
+.idea
+target
