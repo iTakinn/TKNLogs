@@ -14,8 +14,13 @@ public class DiscordNotifier {
     private final static JavaPlugin plugin = TKNLogs.getPlugin();
     private final static FileConfiguration config = plugin.getConfig();
     private static TextChannel channel;
+    private static final String token = config.getString("discord.token");
     public DiscordNotifier(){
-        api = JDABuilder.createDefault(config.getString("discord.token")).build();
+        if(token == null){
+            plugin.getLogger().warning("Token não encontrado");
+            return;
+        }
+        api = JDABuilder.createDefault(token).build();
 
         /*        .addEventListeners(new SlashListener()).build();
         api.upsertCommand("genimg", "gera uma img")
