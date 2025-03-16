@@ -13,69 +13,81 @@ import static java.nio.file.StandardWatchEventKinds.*;
 
 
 public class LoggerReader {
-    private final JavaPlugin plugin;
-    private Path logDir;
+    private final TKNLogs plugin;
+    private long lastPosition = 0;
+    private Path logFilePath;
     private WatchService watchService;
-    private long lastReadPosition;
 
-    public LoggerReader(TKNLogs pl) {
-        this.plugin = pl;
-        Path logDir = Paths.get(Bukkit.getServer().getWorldContainer().getAbsolutePath(), "logs");
-        this.lastReadPosition = 0;
-        
+    public LoggerReader(TKNLogs plugin) {
+        this.plugin = plugin;
+        File serverDir = Bukkit.getServer().getWorldContainer();
+        this.logFilePath = Paths.get(serverDir.getAbsolutePath(), "logs", "latest.log");
     }
 
     public void start() {
-        try {
+        if (!Files.exists(logFilePath)) {
+            plugin.getLogger().severe("Arquivo latest.log não encontrado!");
+            return;
+        }
 
+        try {
             watchService = FileSystems.getDefault().newWatchService();
-            logDir.register(watchService, ENTRY_MODIFY);
+            Path logDir = logFilePath.getParent();
+            logDir.register(watchService, StandardWatchEventKinds.ENTRY_MODIFY);
 
             Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-                while (!Thread.currentThread().isInterrupted()) {
-                    WatchKey key;
-                    try {
-                        key = watchService.take();
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        return;
-                    }
-
-                    for (WatchEvent<?> event : key.pollEvents()) {
-                        if (event.kind() == ENTRY_MODIFY) {
-                            Path changedFile = logDir.resolve((Path) event.context());
-                            if (changedFile.endsWith("latest.log")) {
-                                processLogChanges(changedFile.toFile());
+                try {
+                    while (!Thread.currentThread().isInterrupted()) {
+                        WatchKey key = watchService.take();
+                        for (WatchEvent<?> event : key.pollEvents()) {
+                            if (event.context().toString().equals("latest.log")) {
+                                readNewLines();
                             }
                         }
+                        key.reset();
                     }
-                    key.reset();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                 }
             });
 
         } catch (IOException e) {
-            plugin.getLogger().severe("Erro ao iniciar monitor de logs: " + e.getMessage());
+            plugin.getLogger().severe("Erro ao iniciar monitor: " + e.getMessage());
         }
     }
 
-    private void processLogChanges(File logFile) {
-        try (RandomAccessFile raf = new RandomAccessFile(logFile, "r")) {
-
-            if (raf.length() < lastReadPosition) {
-                lastReadPosition = 0;
+    private void readNewLines() {
+        try (RandomAccessFile raf = new RandomAccessFile(logFilePath.toFile(), "r")) {
+            if (raf.length() < lastPosition) {
+                lastPosition = 0;
             }
-            raf.seek(lastReadPosition);
 
+            raf.seek(lastPosition);
             String line;
             while ((line = raf.readLine()) != null) {
-                line = new String(line.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8);
-                TKNLogs.getDiscord().sendMessage(line);
+                String utf8Line = new String(line.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8);
+                sendToDiscord(utf8Line);
             }
-
-            lastReadPosition = raf.getFilePointer();
+            lastPosition = raf.getFilePointer();
 
         } catch (IOException e) {
             plugin.getLogger().severe("Erro ao ler latest.log: " + e.getMessage());
+        }
+    }
+
+    private void sendToDiscord(String message) {
+        if (TKNLogs.getDiscord() != null) {
+            TKNLogs.getDiscord().sendMessage("```" + message + "```");
+        }
+    }
+
+    public void stop() {
+        try {
+            if (watchService != null) {
+                watchService.close();
+            }
+        } catch (IOException e) {
+            plugin.getLogger().severe("Erro ao parar monitor: " + e.getMessage());
         }
     }
 }

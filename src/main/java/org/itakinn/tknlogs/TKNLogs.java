@@ -12,15 +12,16 @@ public final class TKNLogs extends JavaPlugin {
     public void onEnable() {
         saveDefaultConfig();
         reloadConfig();
-        discord = new DiscordNotifier();
         Bukkit.getPluginManager().registerEvents(new ChatListener(), this);
         Bukkit.getPluginManager().registerEvents(new CommandListener(), this);
         Bukkit.getPluginManager().registerEvents(new JoinQuitListener(), this);
         logMonitor = new LoggerReader(this);
         logMonitor.start();
+        plugin = this;
         Logger logger = Bukkit.getLogger();
         logger.addHandler(new ErrorCatcher());
         ErrorCatcher.register();
+        discord = new DiscordNotifier();
         getLogger().info("PLUGIN STARTED");
     }
     public static JavaPlugin getPlugin(){
