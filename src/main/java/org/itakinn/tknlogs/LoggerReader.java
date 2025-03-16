@@ -18,10 +18,11 @@ public class LoggerReader {
     private WatchService watchService;
     private long lastReadPosition;
 
-    public LoggerReader() {
-        this.plugin = TKNLogs.getPlugin();
-        this.logDir = Paths.get(plugin.getDataFolder().getParentFile().getParent(), "logs");
+    public LoggerReader(TKNLogs pl) {
+        this.plugin = pl;
+        Path logDir = Paths.get(Bukkit.getServer().getWorldContainer().getAbsolutePath(), "logs");
         this.lastReadPosition = 0;
+        
     }
 
     public void start() {

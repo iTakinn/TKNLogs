@@ -10,15 +10,14 @@ public final class TKNLogs extends JavaPlugin {
     private LoggerReader logMonitor;
     @Override
     public void onEnable() {
-        Bukkit.getPluginManager().registerEvents(new ChatListener(), this);
-        Bukkit.getPluginManager().registerEvents(new CommandListener(), this);
-        Bukkit.getPluginManager().registerEvents(new JoinQuitListener(), this);
-        logMonitor = new LoggerReader();
-        logMonitor.start();
-        plugin = this;
         saveDefaultConfig();
         reloadConfig();
         discord = new DiscordNotifier();
+        Bukkit.getPluginManager().registerEvents(new ChatListener(), this);
+        Bukkit.getPluginManager().registerEvents(new CommandListener(), this);
+        Bukkit.getPluginManager().registerEvents(new JoinQuitListener(), this);
+        logMonitor = new LoggerReader(this);
+        logMonitor.start();
         Logger logger = Bukkit.getLogger();
         logger.addHandler(new ErrorCatcher());
         ErrorCatcher.register();
