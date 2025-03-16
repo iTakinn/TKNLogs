@@ -27,16 +27,15 @@ public class LoggerReader {
 
     public void start() {
         try {
-            // Configura o WatchService para monitorar modificações no diretório
+
             watchService = FileSystems.getDefault().newWatchService();
             logDir.register(watchService, ENTRY_MODIFY);
 
-            // Inicia a thread de monitoramento assíncrona
             Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
                 while (!Thread.currentThread().isInterrupted()) {
                     WatchKey key;
                     try {
-                        key = watchService.take(); // Aguarda eventos
+                        key = watchService.take();
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                         return;
@@ -61,9 +60,9 @@ public class LoggerReader {
 
     private void processLogChanges(File logFile) {
         try (RandomAccessFile raf = new RandomAccessFile(logFile, "r")) {
-            // Pula para a última posição lida
+
             if (raf.length() < lastReadPosition) {
-                lastReadPosition = 0; // Log foi reiniciado (ex: servidor reiniciou)
+                lastReadPosition = 0;
             }
             raf.seek(lastReadPosition);
 
