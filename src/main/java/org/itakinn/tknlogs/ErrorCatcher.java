@@ -8,20 +8,18 @@ import java.util.logging.LogRecord;
 public class ErrorCatcher extends Handler {
     @Override
     public void publish(LogRecord record) {
-        if (record.getLevel() == Level.ALL) {
-            String mensagem = record.getMessage();
-            Throwable excecao = record.getThrown();
-            TKNLogs.getDiscord().sendMessage(mensagem);
-            
-            //Bukkit.getConsoleSender().sendMessage("§c[ERROR] " + mensagem);
-
-            if (excecao != null) {
-                TKNLogs.getDiscord().sendMessage(excecao.toString());
-                excecao.printStackTrace();
-            }
+        String msg = record.getMessage();
+        Throwable exce = record.getThrown();
+        TKNLogs.getDiscord().sendMessage(msg);
+        if (exce != null) {
+            TKNLogs.getDiscord().sendMessage(exce.toString());
+            exce.printStackTrace();
         }
     }
-
+    public static void register() {
+        java.util.logging.Logger rootLogger = java.util.logging.Logger.getLogger("");
+        rootLogger.addHandler(new ErrorCatcher());
+    }
     @Override
     public void flush() {
     }
